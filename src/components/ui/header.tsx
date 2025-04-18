@@ -10,10 +10,10 @@ const Header = () => {
     <div className='flex justify-between items-center p-4 px-10 border-b border-gray-200'>
         <p className='flex gap-2 items-center font-semibold text-xl'><Globe/>Site Sense</p>
         <div className='flex gap-4'>
-            <Link to="/scan" className='flex gap-2 items-center'><Eye/>Scan</Link>
+            <Link to="/dashboard" className='flex gap-2 items-center'><Eye/>Scan</Link>
 
             <Link to="/share" className='flex gap-2 items-center'><Share/>Share</Link>
-            <Link to="/share" className='flex gap-2 items-center'><Bookmark/>Saved</Link>
+            <Link to="/saved" className='flex gap-2 items-center'><Bookmark/>Saved</Link>
 
 
         </div>

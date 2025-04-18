@@ -35,9 +35,13 @@ const Dashboard = () => {
         },
         body: JSON.stringify({ url: formattedUrl, type: 'link' }),
       })
+
+      
       const initialData = await response.json()
-      console.log(initialData.data.processID)
-      console.log(`${baseURL}/api/v2/scan/status?processID=${initialData.data.processID}?page=1&limit=1`)
+      if (initialData.status == 'SUCCESS'){}
+      
+      
+      // console.log(`${baseURL}/api/v2/scan/status?processID=${initialData.data.processID}?page=${currentPage}&limit=1`)
       if (initialData.status === 'SUCCESS') {
         const processID = initialData.data.processID
         const totalSubdomains = initialData.data.getSubDomains.length
@@ -45,12 +49,11 @@ const Dashboard = () => {
         setSubDomains(initialData.data.getSubDomains)
 
         // Set up SSE connection
-        const eventSource = new EventSource(`${baseURL}/api/v2/scan/${processID}?page=1&limit=1`)
+        const eventSource = new EventSource(`${baseURL}/api/v2/scan/${processID}?page=${currentPage}&limit=1`)
         
         eventSource.onmessage = (event) => {
           const data = JSON.parse(event.data)
           setScanData(data)
-          console.log(data)
           console.log(totalSubdomains)
           // Calculate progress
           if (data.totalCount) {

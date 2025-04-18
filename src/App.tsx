@@ -3,6 +3,8 @@ import Home from './pages/home'
 import Dashboard from './pages/dashboard'
 import './App.css'
 import Login from './pages/login'
+import Saved from './pages/saved'
+import { ViolationDetails } from './pages/violationDetails'
 
 export default function App() {
   return (
@@ -10,6 +12,8 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path='/saved' element={<Saved/>}></Route>
+        <Route path='/violations/:id' element={<ViolationDetails/>}/>
       </Routes>
     </HashRouter>
   )
