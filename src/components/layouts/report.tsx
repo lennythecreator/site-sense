@@ -132,7 +132,7 @@ const Report = ({ url, scanData, progress, subDomains, totalDomains = 0, current
               <DialogHeader>
                 <DialogTitle>Save Report</DialogTitle>
                 <DialogDescription>
-                  Name your report. Click save when you're done.
+                  Name your report and Click save when you're done.
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
