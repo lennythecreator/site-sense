@@ -12,20 +12,32 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from '../ui/label'
 import { Input } from '../ui/input'
 
-const Report = ({ url, scanData, progress, subDomains, totalDomains = 0, currentPage = 1, onPageChange }: { 
+const Report = ({ url, scanData, progress, subDomains, totalDomains = 0, currentPage = 1, onPageChange, onDomainChange, processID }: {
   url: string, 
   scanData: any, 
   progress: number,
   subDomains: string[],
   totalDomains: number,
   currentPage: number,
-  onPageChange: (page: number) => void 
+  processID: string,
+  onPageChange: (page: number) => void,
+  onDomainChange: (subdomain: string) => void,
 }) => {
   const [selectedSubdomain, setSelectedSubdomain] = useState(url)
   const [data,setData] = useState(scanData)
   const [page, setPage] = useState(currentPage)
-  const handleDomainChange = (subdomain:string)=>{
-    setSelectedSubdomain(subdomain)
+  const baseURL = 'http://159.65.41.182:5005'
+  const handleDomainChange = async (subdomain: string) => {
+    setSelectedSubdomain(subdomain);
+    onDomainChange(subdomain); // Call the function to update the webview
+    // Fetch scan data for the selected subdomain
+    try {
+      const response = await fetch(`${subdomain}/api/v2/scan/data`);
+      const newData = await response.json();
+      setData(newData); // Update the scan data for the selected subdomain
+    } catch (error) {
+      console.error("Error fetching data for subdomain:", error);
+    }
   }
   const violations = scanData?.info[0]?.info?.info?.violations || [];
   const generatePaginationItems = () => {
@@ -112,8 +124,39 @@ const Report = ({ url, scanData, progress, subDomains, totalDomains = 0, current
     return items;
   };
 
-  
-  
+  const saveReport = async () => {
+    console.log(processID)
+    // if (!scanData || !processID) {
+    //   console.error('Error: scanData or processID is not available.');
+    //   return; // Exit the function early if scanData or processID is missing
+    // }
+    // console.log('id: ', scanData.violations)
+    console.log('url: ', url)
+    try {
+      const response = await fetch(`${baseURL}/api/v2/save/${processID}`,{
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          url: url,
+          scanData: scanData,
+          violations: violations,
+
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to save report: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log('Report saved successfully:', result);
+    } catch (error) {
+      console.error('Error saving report:', error);
+    }
+  };
+
   console.log(scanData)
   console.log('violations: ', violations)
   return (
@@ -126,7 +169,7 @@ const Report = ({ url, scanData, progress, subDomains, totalDomains = 0, current
           <Button><Share2Icon/>Share</Button>
           <Dialog>
             <DialogTrigger>
-              <Button><SaveAllIcon/>Save</Button>
+              <Button onClick={saveReport}><SaveAllIcon/>Save</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
@@ -210,7 +253,7 @@ const Report = ({ url, scanData, progress, subDomains, totalDomains = 0, current
                   <p className='text-sm font-bold'>Violations</p>
                   <ScrollArea className='h-[440px] pr-4'>
                     {violations.map((violation, index) => (
-                      <ViolationCard violation={violation}/>
+                      <ViolationCard violation={violation} key={index}/>
                     ))}
                   </ScrollArea>
                   

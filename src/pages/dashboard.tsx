@@ -5,6 +5,7 @@ import Header from '@/components/ui/header'
 import { Input } from '@/components/ui/input'
 import { GlobeIcon } from 'lucide-react'
 import React, { useState, useEffect } from 'react'
+import {SSE} from 'sse.js'
 
 const Dashboard = () => {
   const [scanning, setScanning] = useState(false)
@@ -14,8 +15,17 @@ const Dashboard = () => {
   const [scanData, setScanData] = useState<any>(null)
   const [progress, setProgress] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
-  const [subDomains, setSubDomains] = useState<string[]>([])
+  const [subDomains, setSubDomains] = useState([])
+  const [processID, setProcessID] = useState<string>("")
   const baseURL = 'http://159.65.41.182:5005'
+
+  const subDomainHelper = (subdomain:Array<string>)=>{
+    const output: { [key: string]: number } = {};
+    for(let i = 0; i < subdomain.length; i++){
+      output[subdomain[i]] = i
+    }
+    return output
+  }
 
   const handleScan = async () => {
     // Format URL: remove www. and add https:// if needed
@@ -28,53 +38,43 @@ const Dashboard = () => {
 
     try {
       // First API call to get processID and subdomains
-      const response = await fetch(`${baseURL}/api/v2/scan`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ url: formattedUrl, type: 'link' }),
-      })
+      const response = await fetch(`${baseURL}/api/v2/scan`,{method: 'POST',headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ url: formattedUrl, type:'link' })})
 
       
-      const initialData = await response.json()
-      if (initialData.status == 'SUCCESS'){}
+      const initialData = await response.json()     
       
-      
-      // console.log(`${baseURL}/api/v2/scan/status?processID=${initialData.data.processID}?page=${currentPage}&limit=1`)
       if (initialData.status === 'SUCCESS') {
         const processID = initialData.data.processID
         const totalSubdomains = initialData.data.getSubDomains.length
         // Simply set the subdomains directly
+        //const subDomainObject = subDomainHelper(initialData.data.getSubDomains)
         setSubDomains(initialData.data.getSubDomains)
 
-        // Set up SSE connection
-        const eventSource = new EventSource(`${baseURL}/api/v2/scan/${processID}?page=${currentPage}&limit=1`)
-        
-        eventSource.onmessage = (event) => {
-          const data = JSON.parse(event.data)
-          setScanData(data)
-          console.log(totalSubdomains)
-          // Calculate progress
-          if (data.totalCount) {
-            setProgress((data.currentCount / totalSubdomains) * 100)
-          }
-
-          // Close connection when scan is complete or timeout
-          if (data.currentCount === totalSubdomains || data.status === 'timeout') {
-            eventSource.close()
-          }
-        }
-
-        eventSource.onerror = (error) => {
-          console.error('SSE Error:', error)
-          eventSource.close()
-        }
-
-        // Timeout after 300 seconds
-        setTimeout(() => {
-          eventSource.close()
-        }, 300000)
+        const sse = new SSE(`${baseURL}/api/v2/scan/${processID}?page=1&limit=2`);
+        sse.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          console.log('SSE Status Update:', data);
+          setScanData(data);
+          
+          // Check if all stages are completed
+          // if (totalSubdomains === data.info.totalCount) {
+          //   setScanData((prevData) => ({
+          //       ...prevData,
+          //       results: [...(prevData?.results || []), ...newData.results],
+          //   }));
+      
+          //   sse.close();
+          //   //setIsProcessing(false);
+          //   // Navigate to the paper page
+          //   //navigate(`/paper/${data.document_id._id}`);
+          // }
+        };
+        sse.onerror = (error) => {
+          console.error('SSE Error:', error);
+          sse.close();
+          //setIsProcessing(false);
+        };
       }
     } catch (error) {
       console.error('Scan error:', error)
@@ -84,6 +84,20 @@ const Dashboard = () => {
   const changePage = (page: number) => {
     setCurrentPage(page)
   }
+
+  const handleSubdomainChange = async (subdomain: string) => {
+    try {
+      const response = await fetch(`${baseURL}/api/v2/scan/data?subdomain=${subdomain}`);
+      const newData = await response.json();
+      setScanData(newData); // Update scan data for the selected subdomain
+    } catch (error) {
+      console.error("Error fetching data for subdomain:", error);
+    }
+  };
+
+
+  
+  
 
   return (
     <div className='flex flex-col h-full'>
@@ -124,6 +138,8 @@ const Dashboard = () => {
                 currentPage={currentPage}
                 onPageChange={changePage}
                 subDomains={subDomains}
+                onDomainChange={handleSubdomainChange}
+                processID={processID}
               />
             </>
         )}

@@ -336,6 +336,7 @@ export default function Home() {
                 )} 
             </h2>
             <div>
+              {/*Filter Impact*/}
               <p>Filter by impact</p>
               <Select value={impactFilter || "all"} onValueChange={handleFilterChange}>
                 <SelectTrigger aria-label="Filter violations by impact level">
@@ -356,6 +357,7 @@ export default function Home() {
               </Select>
             </div>
 
+            {/*Display filtered violations*/}
             {filteredViolations && filteredViolations.length > 0 ? (
               filteredViolations.map((violation: Violation, index: number) => (
                 <Card key={index}>
