@@ -1,4 +1,4 @@
-import { Bookmark, Eye, Globe, Share } from 'lucide-react';
+import { Bookmark, Eye, Globe, HelpCircleIcon, Share } from 'lucide-react';
 import React from 'react'
 import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from './avatar';
@@ -17,7 +17,8 @@ const Header = () => {
 
 
         </div>
-        <div className='flex gap-4'>
+        <div className='flex gap-4 align-center items-center'>
+          <HelpCircleIcon className='mx-4'/>
           <Avatar>
             <AvatarImage src="https://github.com/shadcn.png" />
             <AvatarFallback>CN</AvatarFallback>

@@ -5,6 +5,7 @@ import './App.css'
 import Login from './pages/login'
 import Saved from './pages/saved'
 import { ViolationDetails } from './pages/violationDetails'
+import ReportView from './pages/reportView'
 
 export default function App() {
   return (
@@ -13,6 +14,8 @@ export default function App() {
         <Route path="/" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path='/saved' element={<Saved/>}></Route>
+        <Route path="/report" element={<ReportView/>}/>
+
         <Route path='/violations/:id' element={<ViolationDetails/>}/>
       </Routes>
     </HashRouter>

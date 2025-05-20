@@ -14,14 +14,16 @@ const createWindow = () => {
       preload: path.join(__dirname, "preload.mjs"),
       webviewTag: true,
       nodeIntegration: false,
-      devTools: false,
+      devTools: true,
     },
   })
 
   if (process.env.VITE_DEV_SERVER_URL) {
     win.loadURL(process.env.VITE_DEV_SERVER_URL)
+    win.webContents.openDevTools()
   } else {
     win.loadFile(path.join(__dirname, "../dist/index.html"))
+    win.webContents.openDevTools()
   }
 
   win.webContents.openDevTools()
