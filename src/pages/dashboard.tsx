@@ -39,7 +39,7 @@ const Dashboard = () => {
 
   return (
     <div className='flex flex-col h-full'>
-      <Header />
+      {/* <Header /> */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <h1>Hi welcome to site sense please enter the website URL</h1>

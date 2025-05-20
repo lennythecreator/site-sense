@@ -85,28 +85,29 @@ const Saved = () => {
               <p>No saved reports found.</p>
             </div>
           ) : (
-            filteredReports.map((report, index) => (
-              <Card
-                key={index}
-                className='flex flex-row gap-4 items-center p-4 cursor-pointer hover:bg-gray-100'
-                onClick={() => handleCardClick(report)}
-              >
-                <img
-                  src={report.image || '/placeholder-image.png'}
-                  alt={`${report.name || 'Report'} thumbnail`}
-                  className='w-28 h-40 object-cover'
-                  onError={(e) => {
-                    e.currentTarget.src = '/placeholder-image.png';
-                    console.log('Image failed to load for report:', report.name);
-                  }}
-                />
-                <div className="flex flex-col gap-2">
-                  <h1 className='font-medium text-lg'>{report.name || 'Untitled Report'}</h1>
-                  <p className='text-secondary-foreground'>Site Name: {report.siteName || 'N/A'}</p>
-                  <p className='text-sm'>Date Created: {new Date(report.dateCreated).toLocaleDateString() || 'N/A'}</p>
-                </div>
-              </Card>
-            ))
+            // filteredReports.map((report, index) => (
+            //   <Card
+            //     key={index}
+            //     className='flex flex-row gap-4 items-center p-4 cursor-pointer hover:bg-gray-100'
+            //     onClick={() => handleCardClick(report)}
+            //   >
+            //     <img
+            //       src={report.image || '/placeholder-image.png'}
+            //       alt={`${report.name || 'Report'} thumbnail`}
+            //       className='w-28 h-40 object-cover'
+            //       onError={(e) => {
+            //         e.currentTarget.src = '/placeholder-image.png';
+            //         console.log('Image failed to load for report:', report.name);
+            //       }}
+            //     />
+            //     <div className="flex flex-col gap-2">
+            //       <h1 className='font-medium text-lg'>{report.name || 'Untitled Report'}</h1>
+            //       <p className='text-secondary-foreground'>Site Name: {report.siteName || 'N/A'}</p>
+            //       <p className='text-sm'>Date Created: {new Date(report.dateCreated).toLocaleDateString() || 'N/A'}</p>
+            //     </div>
+            //   </Card>
+            // ))
+            <p>{reportData}</p>
           )}
         </div>
       </div>

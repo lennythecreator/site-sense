@@ -22,7 +22,7 @@ const ReportView = () => {
   const [processID, setProcessID] = useState("")
   const [dialogOpen, setDialogOpen] = useState(true);
   
-  const baseURL = 'http://159.65.41.182:5005'
+  const baseURL = 'http://10.253.54.214:5005'
 
   const subDomainHelper = (subdomain: string[]) => {
     const output: { [key: string]: number } = {}
