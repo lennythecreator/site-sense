@@ -27,9 +27,10 @@ const Dashboard = () => {
   const navigate = useNavigate()
 
   const handleScan = () => {
+    if (scanning) return;
     let formattedUrl = url.replace(/^(https?:\/\/)?(www\.)?/, '')
     formattedUrl = `https://${formattedUrl}`
-
+    setScanning(true)
     navigate(`/report?url=${encodeURIComponent(formattedUrl)}`)
   }
 
@@ -50,20 +51,21 @@ const Dashboard = () => {
           <div className=' h-full flex flex-col flex-1 justify-center items-center'>
             <div className='flex flex-col gap-4 bg-gray-100 p-10 rounded-lg w-1/2 mx-auto justify-center'>
               <h1 className='text-2xl font-bold text-center'>Scan a website</h1>
-              <div className='flex gap-4'>
-                <Input 
-                  type="text" 
-                  placeholder='Enter a website URL' 
-                  value={url} 
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleScan();
+                }}
+                className='flex gap-4'
+              >
+                <Input
+                  type="text"
+                  placeholder='Enter a website URL'
+                  value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleScan()
-                    }
-                  }}
                 />
-                <Button onClick={handleScan}>Scan</Button>
-              </div>
+                <Button type="submit">Scan</Button>
+              </form>
             </div>
         
           </div>)}

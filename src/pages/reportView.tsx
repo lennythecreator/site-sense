@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { SSE } from 'sse.js'
 import Report from '@/components/layouts/report'
@@ -21,8 +21,9 @@ const ReportView = () => {
   const [subDomains, setSubDomains] = useState<{ [key: string]: number }>({})
   const [processID, setProcessID] = useState("")
   const [dialogOpen, setDialogOpen] = useState(true);
-  
-  const baseURL = 'http://10.253.54.214:5005'
+  const hasStartedScan = useRef(false)
+  //Have this be in a environment variable
+  const baseURL = 'http://sitesense.ceamlsapps.org:5005'
 
   const subDomainHelper = (subdomain: string[]) => {
     const output: { [key: string]: number } = {}
@@ -31,11 +32,15 @@ const ReportView = () => {
   }
 
   useEffect(() => {
-    if (urlParam) {
+    if (hasStartedScan.current || scanning) return;
+
+    if (urlParam && !scanning) {
       const formattedUrl = `https://${urlParam.replace(/^(https?:\/\/)?(www\.)?/, '')}`
+      console.log('Calling startScan with URL:', formattedUrl)
       setUrl(formattedUrl)
       setSite(formattedUrl)
       startScan(formattedUrl)
+      setScanning(true)
     } else {
       // Try restoring from localStorage
       const storedUrl = localStorage.getItem('url')
@@ -54,13 +59,14 @@ const ReportView = () => {
         setScanning(true)
       }
     }
-  }, [urlParam])
+  }, [])
 
   useEffect(()=>{
     setDialogOpen(true)
   },[])
 
   const startScan = async (formattedUrl: string) => {
+    console.log('Starting scan for URL:', formattedUrl)
     setScanning(true)
 
     try {
@@ -74,8 +80,10 @@ const ReportView = () => {
       if (initialData.status === 'SUCCESS') {
         const processID = initialData.data.processID
         setProcessID(processID)
-        const totalSubDomains = initialData.data.getSubdomains.length
+        const totalSubDomains = initialData.data.getSubDomains.length
+        console.log('Total subdomains:', totalSubDomains)
         const subDomainObject = subDomainHelper(initialData.data.getSubDomains)
+        console.log('Subdomain object:', subDomainObject)
         setSubDomains(subDomainObject)
 
         // Save to localStorage
@@ -94,7 +102,13 @@ const ReportView = () => {
             if (Array.isArray(data.info) && data.info.length > 0) {
                 setScanData(data);
                 localStorage.setItem('scanDataLive', JSON.stringify(data));
+                //sse.close();
             }
+            if (data.info.length === totalSubDomains){
+              console.log('Scan complete, closing SSE');
+              sse.close()
+            }
+            
         }
 
         sse.onerror = (error) => {
@@ -112,16 +126,7 @@ const ReportView = () => {
     localStorage.setItem('currentPage', String(page))
   }
 
-  const handleSubdomainChange = async (subdomain: string) => {
-    try {
-      const response = await fetch(`${baseURL}/api/v2/scan/data?subdomain=${subdomain}`)
-      const newData = await response.json()
-      setScanData(newData)
-      localStorage.setItem('scanDataLive', JSON.stringify(newData))
-    } catch (error) {
-      console.error("Error fetching data for subdomain:", error)
-    }
-  }
+ 
 
   return (
     <div className="flex flex-col h-full">
@@ -150,7 +155,6 @@ const ReportView = () => {
           currentPage={currentPage}
           onPageChange={changePage}
           subDomains={Object.keys(subDomains)}
-          onDomainChange={handleSubdomainChange}
           processID={processID}
         />
       ) }

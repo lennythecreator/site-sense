@@ -9,14 +9,19 @@ const ViolationCard = ({ violation, reportId , reportState}) => {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
-    // ✅ Store scroll position and violation data
-    localStorage.setItem('scrollPosition', window.scrollY.toString());
-    localStorage.setItem('violationData', JSON.stringify(violation)); // Important for fallback
+    // Save data to localStorage so it can be accessed in the new tab
+  const data = {
+    violation: violation,
+    reportId: reportId,
+    reportState: reportState,
+  };
 
-    // ✅ Navigate with state
-    navigate(`/violations/${violation.id}`, {
-      state: { violation, reportId, reportState },
-    });
+  localStorage.setItem('violationData', JSON.stringify(data.violation));
+  localStorage.setItem('reportId', data.reportId);
+  localStorage.setItem('reportState', JSON.stringify(data.reportState));
+
+  // Send IPC message to main process to open a new window
+  window.electronAPI.openViolationWindow(`/violations/${violation.id}`);
   };
 
   return (

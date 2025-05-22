@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from '../ui/label'
 import { Input } from '../ui/input'
 
-const Report = ({ url, scanData, progress, subDomains, totalDomains = 0, currentPage = 1, onPageChange, onDomainChange, processID }: {
+const Report = ({ url, scanData, progress, subDomains, totalDomains = 0, currentPage = 1, onPageChange, processID }: {
   url: string, 
   scanData: any, 
   progress: number,
@@ -26,7 +26,7 @@ const Report = ({ url, scanData, progress, subDomains, totalDomains = 0, current
   const [selectedSubdomain, setSelectedSubdomain] = useState(url)
   const [data,setData] = useState(scanData)
   const [page, setPage] = useState(currentPage)
-  const baseURL = 'http://159.65.41.182:5005'
+  const baseURL = 'http://sitesense.ceamlsapps.org:5005'
   const handleDomainChange = (subdomain: string) => {
     setSelectedSubdomain(subdomain);
     console.log('Selected subdomain:', subdomain);
@@ -58,16 +58,23 @@ const Report = ({ url, scanData, progress, subDomains, totalDomains = 0, current
   const violations = data?.info?.violations || [];
   const initialized = useRef(false);
 
-useEffect(() => {
-  if (!initialized.current && subDomains && Object.keys(subDomains).length > 0) {
-    const firstSubdomain = Object.values(subDomains)[0];
-    if (firstSubdomain) {
-      setSelectedSubdomain(firstSubdomain);
-      handleDomainChange(firstSubdomain);
-      initialized.current = true;
+  useEffect(() => {
+    if (!scanData || !scanData.info) return;
+
+    const pageIndex = page - 1;
+    const updatedData = scanData.info[pageIndex]?.info || {};
+    setData(updatedData);
+    if (subDomains && Object.keys(subDomains).length > 0) {
+      const firstSubdomain = Object.values(subDomains)[0];
+      if (firstSubdomain) {
+        setSelectedSubdomain(firstSubdomain);
+        //handleDomainChange(firstSubdomain);
+        
+      }
+      
     }
-  }
-}, [subDomains]);
+    
+  }, [selectedSubdomain, subDomains]);
 
   const generatePaginationItems = () => {
     const subDomainKeys = Object.keys(subDomains); // Get an array of subdomain URLs
@@ -171,6 +178,8 @@ useEffect(() => {
 
       const result = await response.json();
       console.log('Report saved successfully:', result);
+      shareReport();
+      console.log('Report share successfully');
     } catch (error) {
       console.error('Error saving report:', error);
     }
@@ -189,8 +198,8 @@ useEffect(() => {
       const data = JSON.parse(text)
       console.log('Report generated successfully:', data)
 
-      if (data?.url) {
-        setShareUrl(data.url)
+      if (data?.data) {
+        setShareUrl(data.data)
       }
     } else {
       console.error('Fetch request failed:', response.status, response.statusText)
@@ -201,8 +210,7 @@ useEffect(() => {
 }
 
 
-  console.log(scanData)
-  console.log('violations: ', violations)
+  
   const uniqueSubDomains = Array.from(new Set(subDomains));
   return (
     <div className='grid grid-cols-3'>
@@ -217,7 +225,7 @@ useEffect(() => {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle>{url} Report Shared</DialogTitle>
+                <DialogTitle>Report for {url} generated</DialogTitle>
                 <DialogDescription>
                   {shareUrl ? (
                     <a href={shareUrl} target="_blank" className="text-blue-600 underline">
