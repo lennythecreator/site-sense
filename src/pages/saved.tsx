@@ -152,7 +152,7 @@ const Saved = () => {
                                   
                                   <p>{violation.description}</p>
                                   <Badge>{violation.impact}</Badge>
-                                  <p>Number of elements affected: {violation.nodes?.length}</p>
+                                  <p className='text-sm'>Number of elements affected: <span className='font-bold text-orange-600 text-lg'>{violation.nodes?.length}</span></p>
                                 </div>
 
                                

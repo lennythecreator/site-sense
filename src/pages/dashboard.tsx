@@ -41,15 +41,15 @@ const Dashboard = () => {
   return (
     <div className='flex flex-col h-full'>
       {/* <Header /> */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen} aria-scribedby='dialog-title'>
         <DialogContent>
-          <h1>Hi welcome to site sense please enter the website URL</h1>
+          <h1 id='dialog-title'>Hi welcome to site sense please enter the website URL by clicking the scan button</h1>
         </DialogContent>
       </Dialog>
        <ScanLayout>
         {!scanning &&(
           <div className=' h-full flex flex-col flex-1 justify-center items-center'>
-            <div className='flex flex-col gap-4 bg-gray-100 p-10 rounded-lg w-1/2 mx-auto justify-center'>
+            <main className='flex flex-col gap-4 bg-gray-100 p-10 rounded-lg w-1/2 mx-auto justify-center'>
               <h1 className='text-2xl font-bold text-center'>Scan a website</h1>
               <form
                 onSubmit={(e) => {
@@ -63,10 +63,11 @@ const Dashboard = () => {
                   placeholder='Enter a website URL'
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
+                  aria-label='This is a text input for Enter a website URL'
                 />
                 <Button type="submit">Scan</Button>
               </form>
-            </div>
+            </main>
         
           </div>)}
         

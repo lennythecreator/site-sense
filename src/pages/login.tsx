@@ -18,7 +18,7 @@ const Login = () => {
         
     </header>
     <div className='p-10 flex justify-center items-center'>
-                <Card className='p-10 w-1/2 flex flex-col gap-4'>
+                <Card className='p-10 w-1/2 flex flex-col gap-4' aria-description='Login to your account by clicking the login button below.'>
                 
                 <h1 className='flex items-center gap-2 text-2xl font-bold mx-auto'><Globe/> Site Sense</h1>
                 

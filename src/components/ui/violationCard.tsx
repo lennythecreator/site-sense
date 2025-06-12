@@ -30,7 +30,7 @@ const ViolationCard = ({ violation, reportId , reportState}) => {
         <div className="flex-1">
           <CardTitle className="text-lg">{capitalize(violation.id)}</CardTitle>
           <CardDescription>{violation.description}</CardDescription>
-          <p>number of elements affected {violation.nodes?.length}</p>
+          <p className='text-sm'>Number of elements affected: <span className='font-bold text-orange-600 text-lg'>{violation.nodes?.length}</span></p>
         </div>
         <Badge>{violation.impact}</Badge>
         <ArrowRight className="text-muted-foreground" />

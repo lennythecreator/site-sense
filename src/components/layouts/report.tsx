@@ -11,6 +11,7 @@ import { ScrollArea } from '../ui/scroll-area'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog'
 import { Label } from '../ui/label'
 import { Input } from '../ui/input'
+import { Link } from 'react-router-dom'
 
 const Report = ({ url, scanData, progress, subDomains, totalDomains = 0, currentPage = 1, onPageChange, processID }: {
   url: string, 
@@ -310,6 +311,17 @@ const Report = ({ url, scanData, progress, subDomains, totalDomains = 0, current
       </div>
       <div className='col-span-1'>
         <p className='text-lg font-bold'>Report Data</p>
+        
+        <Link 
+        to={'/datagrid'} 
+        target='_blank' 
+        className='bg-orange-400 rounded-md'
+        onClick={() => {
+        localStorage.setItem(
+          "datagridState",
+          JSON.stringify({ data, subDomains, url, processID })
+        );}}
+        >View Data Grid</Link>
 
         {data && violations ? (
           <div className='flex flex-col gap-1'>

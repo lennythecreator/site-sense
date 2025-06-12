@@ -6,6 +6,7 @@ import Login from './pages/login'
 import Saved from './pages/saved'
 import { ViolationDetails } from './pages/violationDetails'
 import ReportView from './pages/reportView'
+import DataGrid from './pages/datagrid'
 
 export default function App() {
   return (
@@ -15,7 +16,7 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path='/saved' element={<Saved/>}></Route>
         <Route path="/report" element={<ReportView/>}/>
-
+        <Route path='/datagrid' element={<DataGrid site={""} data={[]}/>}/>
         <Route path='/violations/:id' element={<ViolationDetails/>}/>
       </Routes>
     </HashRouter>
