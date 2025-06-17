@@ -27,9 +27,10 @@ const Dashboard = () => {
   const navigate = useNavigate()
 
   const handleScan = () => {
+    if (scanning) return;
     let formattedUrl = url.replace(/^(https?:\/\/)?(www\.)?/, '')
     formattedUrl = `https://${formattedUrl}`
-
+    setScanning(true)
     navigate(`/report?url=${encodeURIComponent(formattedUrl)}`)
   }
 
@@ -40,31 +41,33 @@ const Dashboard = () => {
   return (
     <div className='flex flex-col h-full'>
       {/* <Header /> */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen} aria-scribedby='dialog-title'>
         <DialogContent>
-          <h1>Hi welcome to site sense please enter the website URL</h1>
+          <h1 id='dialog-title'>Hi welcome to site sense please enter the website URL by clicking the scan button</h1>
         </DialogContent>
       </Dialog>
        <ScanLayout>
         {!scanning &&(
           <div className=' h-full flex flex-col flex-1 justify-center items-center'>
-            <div className='flex flex-col gap-4 bg-gray-100 p-10 rounded-lg w-1/2 mx-auto justify-center'>
+            <main className='flex flex-col gap-4 bg-gray-100 p-10 rounded-lg w-1/2 mx-auto justify-center'>
               <h1 className='text-2xl font-bold text-center'>Scan a website</h1>
-              <div className='flex gap-4'>
-                <Input 
-                  type="text" 
-                  placeholder='Enter a website URL' 
-                  value={url} 
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleScan();
+                }}
+                className='flex gap-4'
+              >
+                <Input
+                  type="text"
+                  placeholder='Enter a website URL'
+                  value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleScan()
-                    }
-                  }}
+                  aria-label='This is a text input for Enter a website URL'
                 />
-                <Button onClick={handleScan}>Scan</Button>
-              </div>
-            </div>
+                <Button type="submit">Scan</Button>
+              </form>
+            </main>
         
           </div>)}
         

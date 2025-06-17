@@ -46,6 +46,24 @@ const createWindow = () => {
   })
 }
 
+ipcMain.on('open-violation-window', (event, routePath: string) => {
+  const win = new BrowserWindow({
+    width: 1000,
+    height: 800,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'), // adjust as needed
+    },
+  });
+
+  if (process.env.VITE_DEV_SERVER_URL) {
+    win.loadURL(`${process.env.VITE_DEV_SERVER_URL}#${routePath}`);
+  } else {
+    win.loadFile(path.join(__dirname, '../dist/index.html'), {
+      hash: routePath,
+    });
+  }
+});
+
 app.whenReady().then(() => {
   createWindow()
 

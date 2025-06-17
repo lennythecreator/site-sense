@@ -11,8 +11,6 @@ const Header = () => {
         <p className='flex gap-2 items-center font-semibold text-xl'><Globe/>Site Sense</p>
         <div className='flex gap-4'>
             <Link to="/dashboard" className='flex gap-2 items-center'><Eye/>Scan</Link>
-
-            <Link to="/share" className='flex gap-2 items-center'><Share/>Share</Link>
             <Link to="/saved" className='flex gap-2 items-center'><Bookmark/>Saved</Link>
 
 

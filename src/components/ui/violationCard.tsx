@@ -9,14 +9,19 @@ const ViolationCard = ({ violation, reportId , reportState}) => {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
-    // ✅ Store scroll position and violation data
-    localStorage.setItem('scrollPosition', window.scrollY.toString());
-    localStorage.setItem('violationData', JSON.stringify(violation)); // Important for fallback
+    // Save data to localStorage so it can be accessed in the new tab
+  const data = {
+    violation: violation,
+    reportId: reportId,
+    reportState: reportState,
+  };
 
-    // ✅ Navigate with state
-    navigate(`/violations/${violation.id}`, {
-      state: { violation, reportId, reportState },
-    });
+  localStorage.setItem('violationData', JSON.stringify(data.violation));
+  localStorage.setItem('reportId', data.reportId);
+  localStorage.setItem('reportState', JSON.stringify(data.reportState));
+
+  // Send IPC message to main process to open a new window
+  window.electronAPI.openViolationWindow(`/violations/${violation.id}`);
   };
 
   return (
@@ -25,7 +30,7 @@ const ViolationCard = ({ violation, reportId , reportState}) => {
         <div className="flex-1">
           <CardTitle className="text-lg">{capitalize(violation.id)}</CardTitle>
           <CardDescription>{violation.description}</CardDescription>
-          <p>number of elements affected {violation.nodes?.length}</p>
+          <p className='text-sm'>Number of elements affected: <span className='font-bold text-orange-600 text-lg'>{violation.nodes?.length}</span></p>
         </div>
         <Badge>{violation.impact}</Badge>
         <ArrowRight className="text-muted-foreground" />

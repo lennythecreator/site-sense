@@ -71,7 +71,7 @@ export const ViolationDetails = () => {
         <Card className="w-2/3 mx-auto p-4">
           <CardHeader className="flex flex-col">
             <CardTitle>{violation.id}</CardTitle>
-            <Badge className="w-20 capitalize">{violation.impact}</Badge>
+            <Badge className="w-fit capitaliz ">{violation.impact}</Badge>
           </CardHeader>
 
           <CardContent className="space-y-4">
