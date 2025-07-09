@@ -13,7 +13,7 @@ import { stat } from 'fs'
 const ReportView = () => {
   const [searchParams] = useSearchParams()
   const urlParam = searchParams.get("url")
-  //var status = {code:0}
+  const [status, setStatus] = useState({ code: 0 })// Initialize status with a default object
   const [url, setUrl] = useState("")
   const [site, setSite] = useState("")
   const [scanning, setScanning] = useState(false)
@@ -81,7 +81,7 @@ const ReportView = () => {
       console.log('Initial scan response:', initialData.status)
       if (initialData.status === 'SUCCESS') {
         
-        //console.log(status, 'Scan started successfully')
+        console.log(status, 'Scan started successfully')
         const processID = initialData.data.processID
         setProcessID(processID)
         const totalSubDomains = initialData.data.getSubDomains.length
@@ -103,13 +103,15 @@ const ReportView = () => {
           //status.code = 200
           // Optional: Log to debug
             console.log('SSE incoming:', data);
-
+            setStatus({ code: 200 });
             // ✅ Only update if data.info is non-empty
             if (Array.isArray(data.info) && data.info.length > 0) {
                 setScanData(data);
+                
                 localStorage.setItem('scanDataLive', JSON.stringify(data));
                 //sse.close();
             }
+            
             if (data.info.length === totalSubDomains){
               console.log('Scan complete, closing SSE');
               sse.close()
@@ -119,14 +121,14 @@ const ReportView = () => {
         
         sse.onerror = (error) => {
           console.error('SSE Error:', error)
-          //status.code = 500
+          setStatus({ code: 500 });
           sse.close()
         }
       }
     } catch (error) {
       console.error('Scan error:', error)
     }
-    //console.log('status code:', status.code)
+    console.log('status code:', status.code)
   }
 
   const changePage = (page: number) => {
@@ -158,7 +160,7 @@ const ReportView = () => {
         <Report
           url={url}
           scanData={scanData}
-          //status = {status.code}
+          status = {status}
           currentPage={currentPage}
           onPageChange={changePage}
           subDomains={Object.keys(subDomains)}

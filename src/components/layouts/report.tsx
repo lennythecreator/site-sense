@@ -8,10 +8,10 @@ import { ScrollArea } from '../ui/scroll-area'
 import ViolationCard from '../ui/violationCard'
 import { Link } from 'react-router-dom'
 
-const Report = ({ url, scanData, subDomains, currentPage = 1, onPageChange, processID }: {
+const Report = ({ url, scanData, status,subDomains, currentPage = 1, onPageChange, processID }: {
   url: string, 
   scanData: any, 
-  //status: number,
+  status: object,
   subDomains: string[],
   currentPage: number,
   processID: string,
@@ -38,7 +38,7 @@ const Report = ({ url, scanData, subDomains, currentPage = 1, onPageChange, proc
   const subDomainList = Object.values(subDomains);
   const grouped = groupSubdomains(subDomainList);
   const groupKeys = Object.keys(grouped);
-  //console.log('Status:', status);
+  console.log('Status:', status);
 
   // When group changes, update selected subdomain to first in group
   useEffect(() => {
@@ -310,7 +310,7 @@ const Report = ({ url, scanData, subDomains, currentPage = 1, onPageChange, proc
             <div className="mt-4">
               <p className='text-sm font-bold'>Violations</p>
               <ScrollArea className='h-[440px] pr-4'>
-                {violations.length > 0 ? (
+                {status?.code === 200 && violations.length > 0 ? (
                   violations.map((violation: any, index: number) => (
                     <ViolationCard 
                       violation={violation}
@@ -326,6 +326,10 @@ const Report = ({ url, scanData, subDomains, currentPage = 1, onPageChange, proc
                      />
                   ))
                   
+                ) : status?.code === 500 ? (
+                  <div>
+                    <p className='text-red-500'>An error occurred while fetching the report data.</p>
+                  </div>
                 ) :(
                   <div className='flex justify-center items-center h-40'>
                     <div className='w-8 h-8 border-4 border-gray-300 border-t-transparent rounded-full animate-spin' />
