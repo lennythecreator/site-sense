@@ -1,25 +1,13 @@
-import Report from '@/components/layouts/report'
 import ScanLayout from '@/components/layouts/scan'
 import { Button } from '@/components/ui/button'
-import Header from '@/components/ui/header'
 import { Input } from '@/components/ui/input'
-import { GlobeIcon } from 'lucide-react'
-import React, { useState, useEffect } from 'react'
-import {SSE} from 'sse.js'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 
 const Dashboard = () => {
   const [scanning, setScanning] = useState(false)
   const [url, setUrl] = useState("")
-  const [site, setSite] = useState("")
-  const [isClosed, setIsClosed] = useState(false)
-  const [scanData, setScanData] = useState<any>(null)
-  const [progress, setProgress] = useState(0)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [subDomains, setSubDomains] = useState([])
-  const [processID, setProcessID] = useState<string>("")
-  const baseURL = 'http://159.65.41.182:5005'
   const [dialogOpen, setDialogOpen] = useState(true);
   
 

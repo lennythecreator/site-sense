@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ScanLayout from '@/components/layouts/scan';
 import { Accordion, AccordionContent, AccordionTrigger } from '@/components/ui/accordion';
 import { AccordionItem } from '@radix-ui/react-accordion';
@@ -8,13 +8,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Link as LinkIcon } from 'lucide-react';
 
+interface ViolationNode {
+  impact?: string;
+  html?: string;
+  target?: string[];
+  // Add other properties as needed
+}
+
 export const ViolationDetails = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { id } = useParams(); // fallback if needed
   const { violation:stateViolation, reportId } = location.state || {};
   const [violation, setViolation] = useState(stateViolation);
-  
   useEffect(() => {
     const scrollPosition = localStorage.getItem('scrollPosition');
     if (scrollPosition) {
@@ -41,7 +46,7 @@ export const ViolationDetails = () => {
   }
 };
 
-    
+  
   if (!violation) {
     return (
       <ScanLayout>
@@ -109,7 +114,7 @@ export const ViolationDetails = () => {
             <div>
               <p className="text-lg font-medium">Elements Affected</p>
               <Accordion type="single" collapsible>
-                {violation.nodes?.map((node, index) => (
+                {violation.nodes?.map((node: ViolationNode, index:number) => (
                   <AccordionItem key={index} value={`node-${index}`}>
                     <AccordionTrigger>Element {index + 1}</AccordionTrigger>
                     <AccordionContent>

@@ -1,5 +1,4 @@
-import { Bookmark, Eye, Globe, HelpCircleIcon, Share } from 'lucide-react';
-import React from 'react'
+import { Bookmark, Eye, Globe, HelpCircleIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from './avatar';
 import { Button } from './button';

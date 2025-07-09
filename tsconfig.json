@@ -6,7 +6,7 @@
     "module": "ESNext",
     "skipLibCheck": true,
     "types": ["electron", "node"],
-
+    "noEmitOnError": false,
     /*Tailwind configurations*/
     "baseUrl": ".",
     "paths": {

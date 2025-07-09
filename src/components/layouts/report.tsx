@@ -1,32 +1,53 @@
-import { GlobeIcon, SaveAllIcon, Share2Icon } from 'lucide-react'
-import { Select, SelectContent, SelectTrigger, SelectValue,SelectItem,SelectGroup } from '../ui/select'
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../ui/pagination'
+import { Grid2X2Icon, SaveAllIcon, Share2Icon } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog'
+import { Select, SelectContent, SelectTrigger, SelectValue,SelectItem,SelectGroup, SelectLabel } from '../ui/select'
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../ui/pagination'
 import { Button } from '../ui/button'
-import { Card, CardContent, CardTitle } from '../ui/card'
-import { ViolationSummary } from '../ui/volations'
-import { Progress } from '../ui/progress'
-import { useEffect, useRef, useState } from 'react'
-import ViolationCard from '../ui/violationCard'
 import { ScrollArea } from '../ui/scroll-area'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog'
-import { Label } from '../ui/label'
-import { Input } from '../ui/input'
+import ViolationCard from '../ui/violationCard'
 import { Link } from 'react-router-dom'
 
-const Report = ({ url, scanData, progress, subDomains, totalDomains = 0, currentPage = 1, onPageChange, processID }: {
+const Report = ({ url, scanData, subDomains, currentPage = 1, onPageChange, processID }: {
   url: string, 
   scanData: any, 
-  progress: number,
+  //status: number,
   subDomains: string[],
-  totalDomains: number,
   currentPage: number,
   processID: string,
   onPageChange: (page: number) => void,
   onDomainChange: (subdomain: string) => void,
 }) => {
   const [selectedSubdomain, setSelectedSubdomain] = useState(url)
+  const [selectedGroup, setSelectedGroup] = useState('')
   const [data,setData] = useState(scanData)
   const [page, setPage] = useState(currentPage)
+  // Group subdomains by their base path (e.g., lenny.com/home)
+  const groupSubdomains = (subs: string[]) => {
+    const groups: { [group: string]: string[] } = {};
+    subs.forEach((sub) => {
+      // Extract group as the first two segments (domain + first path segment)
+      const match = sub.match(/^(https?:\/\/[^\/]+\/[\w-]+)/);
+      const group = match ? match[1] : sub;
+      if (!groups[group]) groups[group] = [];
+      groups[group].push(sub);
+    });
+    return groups;
+  };
+
+  const subDomainList = Object.values(subDomains);
+  const grouped = groupSubdomains(subDomainList);
+  const groupKeys = Object.keys(grouped);
+  //console.log('Status:', status);
+
+  // When group changes, update selected subdomain to first in group
+  useEffect(() => {
+    if (selectedGroup && grouped[selectedGroup]) {
+      setSelectedSubdomain(grouped[selectedGroup][0]);
+      setPage(1);
+      onPageChange(1);
+    }
+  }, [selectedGroup]);
   const baseURL = 'http://sitesense.ceamlsapps.org:5005'
   const handleDomainChange = (subdomain: string) => {
     setSelectedSubdomain(subdomain);
@@ -57,108 +78,37 @@ const Report = ({ url, scanData, progress, subDomains, totalDomains = 0, current
   }
 
   const violations = data?.info?.violations || [];
-  const initialized = useRef(false);
+  // const initialized = useRef(false); // No longer used
 
   useEffect(() => {
     if (!scanData || !scanData.info) return;
-
     const pageIndex = page - 1;
     const updatedData = scanData.info[pageIndex]?.info || {};
     setData(updatedData);
-    if (subDomains && Object.keys(subDomains).length > 0) {
-      const firstSubdomain = Object.values(subDomains)[0];
-      if (firstSubdomain) {
-        setSelectedSubdomain(firstSubdomain);
-        //handleDomainChange(firstSubdomain);
-        
-      }
-      
-    }
-    
-  }, [selectedSubdomain, subDomains]);
+  }, [selectedSubdomain, subDomains, page]);
 
+  // Generate pagination for subdomains in the selected group
   const generatePaginationItems = () => {
-    const subDomainKeys = Object.keys(subDomains); // Get an array of subdomain URLs
-    const totalPages = subDomainKeys.length;
+    if (!selectedGroup || !grouped[selectedGroup]) return null;
+    const groupSubs = grouped[selectedGroup];
+    const totalPages = groupSubs.length;
     const items = [];
-
-    // Always show the first page
-    items.push(
-      <PaginationItem key={1}>
-        <PaginationLink 
-          onClick={() => {
-            onPageChange(1);
-            handleDomainChange(subDomainKeys[0]); // Update webview for the first subdomain
-          }}
-          isActive={currentPage === 1}
-        >
-          1
-        </PaginationLink>
-      </PaginationItem>
-    );
-
-    if (totalPages <= 5) {
-      // Show all pages if 5 or fewer
-      for (let i = 2; i <= totalPages; i++) {
-        items.push(
-          <PaginationItem key={i}>
-            <PaginationLink 
-              onClick={() => {
-                onPageChange(i);
-                handleDomainChange(subDomainKeys[i - 1]); // Update webview for corresponding subdomain
-              }}
-              isActive={currentPage === i}
-            >
-              {i}
-            </PaginationLink>
-          </PaginationItem>
-        );
-      }
-    } else {
-      // Show ellipsis for many pages
-      if (currentPage > 3) {
-        items.push(<PaginationEllipsis key="ellipsis-1" />);
-      }
-
-      // Show current page and neighbors
-      for (let i = Math.max(2, currentPage - 1); i <= Math.min(currentPage + 1, totalPages - 1); i++) {
-        items.push(
-          <PaginationItem key={i}>
-            <PaginationLink 
-              onClick={() => {
-                onPageChange(i);
-                handleDomainChange(subDomainKeys[i - 1]); // Update webview for corresponding subdomain
-              }}
-              isActive={currentPage === i}
-            >
-              {i}
-            </PaginationLink>
-          </PaginationItem>
-        );
-      }
-
-      if (currentPage < totalPages - 2) {
-        items.push(<PaginationEllipsis key="ellipsis-2" />);
-      }
-
-      // Always show the last page
-      if (totalPages > 1) {
-        items.push(
-          <PaginationItem key={totalPages}>
-            <PaginationLink 
-              onClick={() => {
-                onPageChange(totalPages);
-                handleDomainChange(subDomainKeys[totalPages - 1]); // Update webview for the last subdomain
-              }}
-              isActive={currentPage === totalPages}
-            >
-              {totalPages}
-            </PaginationLink>
-          </PaginationItem>
-        );
-      }
+    for (let i = 1; i <= totalPages; i++) {
+      items.push(
+        <PaginationItem key={i}>
+          <PaginationLink
+            onClick={() => {
+              setPage(i);
+              onPageChange(i);
+              handleDomainChange(groupSubs[i - 1]);
+            }}
+            isActive={page === i}
+          >
+            {i}
+          </PaginationLink>
+        </PaginationItem>
+      );
     }
-
     return items;
   };
 
@@ -212,17 +162,17 @@ const Report = ({ url, scanData, progress, subDomains, totalDomains = 0, current
 
 
   
-  const uniqueSubDomains = Array.from(new Set(subDomains));
+  // const uniqueSubDomains = Array.from(new Set(subDomains)); // No longer used
   return (
     <div className='grid grid-cols-3'>
       <div className='flex flex-col gap-2 col-span-2  h-full p-5'>
         <div className='flex items-center gap-2 px-3'>
           <p className='flex items-center gap-2 p-2 mr-auto bg-gray-100 rounded-lg'>
-            <GlobeIcon/>{url}
+            Select Subdomain
           </p>
           <Dialog>
             <DialogTrigger>
-              <Button onClick={shareReport}><Share2Icon/>Share</Button>
+              <Button onClick={shareReport} className='rounded-xl'><Share2Icon/>Share</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
@@ -242,7 +192,7 @@ const Report = ({ url, scanData, progress, subDomains, totalDomains = 0, current
           
           <Dialog>
             <DialogTrigger>
-              <Button onClick={saveReport}><SaveAllIcon/>Save</Button>
+              <Button onClick={saveReport} className='rounded-xl'><SaveAllIcon/>Save</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
@@ -254,43 +204,72 @@ const Report = ({ url, scanData, progress, subDomains, totalDomains = 0, current
           
           </div>
         <div className='flex items-center gap-2 px-3 mb-4'>
-          <Select onValueChange={handleDomainChange}>
-            <SelectTrigger className='w-60 h-7'>
-              <SelectValue placeholder={Object.values(subDomains)[0] || url} value={selectedSubdomain} />
-            </SelectTrigger>
+          {/* Group dropdown */}
+          <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+          <SelectTrigger className='w-60 h-7'>
+            
+            <SelectValue placeholder='Select Group' />
+          </SelectTrigger>
             <SelectContent className='p-1'>
               <SelectGroup>
-                {Object.entries(subDomains).map(([domain, index]) => (
-                  <SelectItem key={index} value={subDomains[domain]} className='text-sm h-12 w-96'>
-                    {subDomains[domain]}
+                <SelectLabel>Subdomain Group</SelectLabel>
+                {groupKeys.map((group) => (
+                  <SelectItem key={group} value={group} className='text-sm h-12 w-96'>
+                    {group}
                   </SelectItem>
                 ))}
               </SelectGroup>
             </SelectContent>
           </Select>
+
+          {/* Subdomain dropdown (filtered by group) */}
+          <Select value={selectedSubdomain} onValueChange={handleDomainChange}>
+          <SelectTrigger className='w-60 h-7'>
+            <SelectValue placeholder='Select Subdomain' />
+          </SelectTrigger>
+            <SelectContent className='p-1'>
+              <SelectGroup>
+                <SelectLabel>Subdomain</SelectLabel>
+                {(grouped[selectedGroup] || []).map((sub) => (
+                  <SelectItem key={sub} value={sub} className='text-sm h-12 w-96'>
+                    {sub}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+
           <Pagination className='justify-end'>
             <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious 
-                   onClick={() => {
-                    const previousSubdomain = Object.values(subDomains)[currentPage - 2];
-                    handleDomainChange(previousSubdomain);
-                    onPageChange(currentPage - 1);
-                  }}
-                  disabled={currentPage === 1}
-                />
-              </PaginationItem>
+              {(selectedGroup && grouped[selectedGroup] && (grouped[selectedGroup] || []).indexOf(selectedSubdomain) > 0) && (
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => {
+                      const prevIdx = (grouped[selectedGroup] || []).indexOf(selectedSubdomain) - 1;
+                      if (prevIdx >= 0) {
+                        handleDomainChange(grouped[selectedGroup][prevIdx]);
+                        setPage(prevIdx + 1);
+                        onPageChange(prevIdx + 1);
+                      }
+                    }}
+                  />
+                </PaginationItem>
+              )}
               {generatePaginationItems()}
-              <PaginationItem>
-                <PaginationNext 
-                   onClick={() => {
-                    const nextSubdomain = Object.values(subDomains)[currentPage];
-                    handleDomainChange(nextSubdomain);
-                    onPageChange(currentPage + 1);
-                  }}
-                  disabled={currentPage === subDomains.length}
-                />
-              </PaginationItem>
+              {(selectedGroup && grouped[selectedGroup] && (grouped[selectedGroup] || []).indexOf(selectedSubdomain) < (grouped[selectedGroup] || []).length - 1) && (
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => {
+                      const nextIdx = (grouped[selectedGroup] || []).indexOf(selectedSubdomain) + 1;
+                      if (nextIdx < (grouped[selectedGroup] || []).length) {
+                        handleDomainChange(grouped[selectedGroup][nextIdx]);
+                        setPage(nextIdx + 1);
+                        onPageChange(nextIdx + 1);
+                      }
+                    }}
+                  />
+                </PaginationItem>
+              )}
             </PaginationContent>
           </Pagination>
         </div>
@@ -315,16 +294,16 @@ const Report = ({ url, scanData, progress, subDomains, totalDomains = 0, current
         <Link 
         to={'/datagrid'} 
         target='_blank' 
-        className='bg-orange-400 rounded-md'
+        className=' flex  w-fit bg-orange-200 rounded-md p-1 gap-2 text-orange-800'
         onClick={() => {
         localStorage.setItem(
           "datagridState",
           JSON.stringify({ data, subDomains, url, processID })
         );}}
-        >View Data Grid</Link>
+        ><Grid2X2Icon/> View Data Grid</Link>
 
         {data && violations ? (
-          <div className='flex flex-col gap-1'>
+          <div className='flex flex-col gap-1 p-2'>
             {/* <p className='text-sm font-bold'>Progress</p>
             <Progress value={progress} /> */}
 
@@ -346,7 +325,8 @@ const Report = ({ url, scanData, progress, subDomains, totalDomains = 0, current
                       }}
                      />
                   ))
-                ) : (
+                  
+                ) :(
                   <div className='flex justify-center items-center h-40'>
                     <div className='w-8 h-8 border-4 border-gray-300 border-t-transparent rounded-full animate-spin' />
                   </div>

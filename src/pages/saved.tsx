@@ -1,24 +1,34 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card } from '../components/ui/card';
 import Header from '../components/ui/header';
-import { log } from 'console';
-import { Globe, Globe2 } from 'lucide-react';
+import { Globe } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import ViolationCard from '@/components/ui/violationCard';
 import { ScrollArea } from '@/components/ui/scroll-area';
+
+type Report = {
+  log_id?: {
+    status?: string;
+    url?: string;
+    link?: string;
+    createdAt?: string; // Added createdAt property
+    info?: {
+      info?: {
+        violations?: any[];
+      };
+    };
+  };
+  // add other fields as needed
+};
 
 const Saved = () => {
   const [reportData, setReportData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const baseURL = 'http://159.65.41.182:5005';
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -30,7 +40,11 @@ const Saved = () => {
         setReportData(data.data?.info || []);
       } catch (error) {
         console.error('Error fetching reports:', error);
-        setError(error.message || 'Unknown error');
+        if (error instanceof Error) {
+          setError(error.message);
+        } else {
+          setError('Unknown error');
+        }
       } finally {
         setLoading(false);
       }
@@ -39,30 +53,12 @@ const Saved = () => {
     fetchReports();
   }, []);
 
-  const reports = reportData || [];
+  const reports:Report[] = reportData || [];
 
   const filteredReports = reports.filter((report) =>
     report.log_id?.url?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-
-  const handleCardClick = (report: any) => {
-    const violation = report.value;
-    const violationId = violation?.any?.[0]?.id || 'violation';
-    const siteUrl = report.siteUrl || '';
-
-    // Save violation in localStorage
-    localStorage.setItem('violationData', JSON.stringify(violation));
-    localStorage.setItem('scrollPosition', '0');
-
-    // Navigate to details
-    navigate(`/violations/${violationId}`, {
-      state: {
-        violation,
-        reportId: siteUrl,
-      },
-    });
-  };
 
   return (
     <div>
@@ -128,7 +124,7 @@ const Saved = () => {
                             {(report.log_id?.url || 'No URL available').replace(/^https?:\/\//, '')}
                           </h1>
                           <p className='text-sm text-gray-500'>
-                            {new Date(report.log_id?.createdAt).toLocaleString(undefined, {
+                            {new Date(report.log_id?.createdAt ?? '').toLocaleString(undefined, {
                               year: 'numeric',
                               month: 'short',
                               day: 'numeric',
@@ -142,7 +138,7 @@ const Saved = () => {
                               <Button className='mt-10'>View</Button>
                             </DialogTrigger>
                             <DialogContent>
-                              <DialogTitle className='text-xl'>{(report.log_id?.url).replace(/^https?:\/\//, '')}</DialogTitle>
+                              <DialogTitle className='text-xl'>{(report.log_id?.url ?? 'No URL').replace(/^https?:\/\//, '')}</DialogTitle>
                               <a href={report.log_id?.link} target='_blank' className='bg-orange-500 text-white px-2 py-1 rounded-md w-fit ml-auto cursor-pointer'>View full report</a>
                               <ScrollArea className='h-[calc(100vh-200px)]'>
                                 {report?.log_id?.info?.info?.violations?.map((violation: any, index: number) => (

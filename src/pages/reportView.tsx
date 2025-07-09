@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { SSE } from 'sse.js'
 import Report from '@/components/layouts/report'
@@ -7,16 +7,17 @@ import { Button } from '@/components/ui/button'
 import Header from '@/components/ui/header'
 import { Dialog } from '@radix-ui/react-dialog'
 import { DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { stat } from 'fs'
+//import { console } from 'inspector'
 
 const ReportView = () => {
   const [searchParams] = useSearchParams()
   const urlParam = searchParams.get("url")
-
+  //var status = {code:0}
   const [url, setUrl] = useState("")
   const [site, setSite] = useState("")
   const [scanning, setScanning] = useState(false)
   const [scanData, setScanData] = useState<any>(null)
-  const [progress, setProgress] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [subDomains, setSubDomains] = useState<{ [key: string]: number }>({})
   const [processID, setProcessID] = useState("")
@@ -77,7 +78,10 @@ const ReportView = () => {
       })
 
       const initialData = await response.json()
+      console.log('Initial scan response:', initialData.status)
       if (initialData.status === 'SUCCESS') {
+        
+        //console.log(status, 'Scan started successfully')
         const processID = initialData.data.processID
         setProcessID(processID)
         const totalSubDomains = initialData.data.getSubDomains.length
@@ -95,6 +99,8 @@ const ReportView = () => {
         const sse = new SSE(`${baseURL}/api/v2/scan/${processID}?page=1&limit=${totalSubDomains}`)
         sse.onmessage = (event) => {
           const data = JSON.parse(event.data);
+          //set code to 200
+          //status.code = 200
           // Optional: Log to debug
             console.log('SSE incoming:', data);
 
@@ -110,15 +116,17 @@ const ReportView = () => {
             }
             
         }
-
+        
         sse.onerror = (error) => {
           console.error('SSE Error:', error)
+          //status.code = 500
           sse.close()
         }
       }
     } catch (error) {
       console.error('Scan error:', error)
     }
+    //console.log('status code:', status.code)
   }
 
   const changePage = (page: number) => {
@@ -150,12 +158,16 @@ const ReportView = () => {
         <Report
           url={url}
           scanData={scanData}
-          progress={progress}
-          totalDomains={Object.keys(subDomains).length}
+          //status = {status.code}
           currentPage={currentPage}
           onPageChange={changePage}
           subDomains={Object.keys(subDomains)}
           processID={processID}
+          onDomainChange={(subdomain: string) => {
+            // You can implement domain change logic here if needed
+            // For now, just log or leave empty
+            console.log("Domain changed to:", subdomain);
+          }}
         />
       ) }
     </div>

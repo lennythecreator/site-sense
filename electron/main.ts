@@ -46,7 +46,7 @@ const createWindow = () => {
   })
 }
 
-ipcMain.on('open-violation-window', (event, routePath: string) => {
+ipcMain.on('open-violation-window', (_event, routePath: string) => {
   const win = new BrowserWindow({
     width: 1000,
     height: 800,
