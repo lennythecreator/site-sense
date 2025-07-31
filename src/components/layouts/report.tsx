@@ -8,10 +8,13 @@ import { ScrollArea } from '../ui/scroll-area'
 import ViolationCard from '../ui/violationCard'
 import { Link } from 'react-router-dom'
 
+type Status ={
+  code: number
+}
 const Report = ({ url, scanData, status,subDomains, currentPage = 1, onPageChange, processID }: {
   url: string, 
   scanData: any, 
-  status: object,
+  status: Status,
   subDomains: string[],
   currentPage: number,
   processID: string,
@@ -40,12 +43,14 @@ const Report = ({ url, scanData, status,subDomains, currentPage = 1, onPageChang
   const groupKeys = Object.keys(grouped);
   console.log('Status:', status);
 
-  // When group changes, update selected subdomain to first in group
+  // When group changes, only set selectedSubdomain if there are subdomains in the group
   useEffect(() => {
-    if (selectedGroup && grouped[selectedGroup]) {
+    if (selectedGroup && grouped[selectedGroup] && grouped[selectedGroup].length > 0) {
       setSelectedSubdomain(grouped[selectedGroup][0]);
       setPage(1);
       onPageChange(1);
+    } else {
+      setSelectedSubdomain(''); // or undefined
     }
   }, [selectedGroup]);
   const baseURL = 'http://sitesense.ceamlsapps.org:5005'
@@ -308,7 +313,7 @@ const Report = ({ url, scanData, status,subDomains, currentPage = 1, onPageChang
             <Progress value={progress} /> */}
 
             <div className="mt-4">
-              <p className='text-sm font-bold'>Violations</p>
+              <p className='text-sm font-bold'>Issues</p>
               <ScrollArea className='h-[440px] pr-4'>
                 {status?.code === 200 && violations.length > 0 ? (
                   violations.map((violation: any, index: number) => (

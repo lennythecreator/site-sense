@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom'
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertCircle, AlertTriangle, CircleAlert, InfoIcon, OctagonAlert } from 'lucide-react';
 
 type DataGridProps = {
   site: string;
@@ -58,22 +59,22 @@ const DataGrid: React.FC<DataGridProps> = () => {
     // Utility for impact color and icon
     const impactStyles: Record<string, { color: string; icon: string; label: string }> = {
         critical: {
-            color: 'bg-[#D73027] text-white border-2 border-[#A50026]', // deep red, color-blind safe
+            color: 'bg-red-300 text-[#1E1E1E] border-[1px] border-red-300', // deep red, color-blind safe
             icon: '‼️',
             label: 'Critical impact',
         },
         serious: {
-            color: 'bg-[#FC8D59] text-black border-2 border-[#D73027]', // orange, color-blind safe
+            color: 'bg-orange-300 text-[#1E1E1E] border-2 border-orange-200', // orange, color-blind safe
             icon: '⚠️',
             label: 'Serious impact',
         },
         moderate: {
-            color: 'bg-[#FEE08B] text-black border-2 border-[#FC8D59]', // yellow, color-blind safe
+            color: 'bg-yellow-300 text-[#1E1E1E] border-2 border-yellow-200', // yellow, color-blind safe
             icon: '●',
             label: 'Moderate impact',
         },
         minor: {
-            color: 'bg-[#B0B7C3] text-black border-2 border-[#6C757D]', // neutral gray, not green
+            color: 'bg-blue-300 text-[#1E1E1E] border-2 border-blue-200', // neutral gray, not green
             icon: '✖️',
             label: 'Minor impact',
         },
@@ -89,26 +90,42 @@ const DataGrid: React.FC<DataGridProps> = () => {
     );
 
     return (
-        <main>
+        <main className='p-10'>
             
-            <div className='p-10'>
-                <h1 className='text-center font-medium text-2xl'>Audit for {url}</h1>
-                <div className="flex gap-4 my-4 justify-center">
+            <div className=''>
+                <h1 className='text-left font-semibold text-4xl'>Audit for <span className='text-indigo-600'>{url}</span></h1>
+                <p className='text-sm text-gray-500 py-2'>Here's a summary of the violations found from your scan.</p>
+                <div className="flex gap-4 my-4 justify-evenly">
                     {Object.keys(severityOrder).map((impact) => (
-                        <div
-                        key={impact}
-                        className={`px-3 py-1 rounded-full font-semibold ${impactStyles[impact]?.color || 'bg-gray-200'}`}
-                        aria-label={`${impact} count`}
-                        >
-                         {impact.charAt(0).toUpperCase() + impact.slice(1)}: {impactCounts[impact] || 0}
-                        </div>
+                        <>
+                            <div
+                                key={impact}
+                                className={`flex items-center gap-3 w-96 p-3 rounded-md font-semibold ${impactStyles[impact]?.color || 'bg-gray-200'}`}
+                                aria-label={`${impact} count`}
+                            >
+                                <span
+                                className=' flex flex-col text-sm font-semibold capitalize'>
+                                    {impact.charAt(0).toUpperCase() + impact.slice(1)} 
+                                    <span
+                                    className='text-2xl font-bold'>
+                                        {impactCounts[impact] || 0}
+                                    </span>    
+                                </span>
+                                
+                                <ImpactIcon impact={impact as Impact} />
+                                <br/>
+                                
+                            </div>
+                            
+                        </>
                     ))}
                 </div>
-                <div className='p-5 w-96 mx-auto flex gap-4 items-end'>
+
+                <div className='w-full mx-auto flex gap-4 items-end'>
                     <div>
                         <p>Filter</p>
                         <Select onValueChange={setImpactFilter} value={impactFilter}>
-                            <SelectTrigger>
+                            <SelectTrigger className='w-[40vw]'>
                                 <SelectValue placeholder="Select Impact"/>
                             </SelectTrigger>
                             <SelectContent>
@@ -125,7 +142,7 @@ const DataGrid: React.FC<DataGridProps> = () => {
                     <div>
                         <p>Sort</p>
                         <Select onValueChange={v => setSortOrder(v as 'asc' | 'desc')} value={sortOrder}>
-                            <SelectTrigger>
+                            <SelectTrigger className='w-[40vw]'>
                                 <SelectValue placeholder="Sort by Impact"/>
                             </SelectTrigger>
                             <SelectContent>
@@ -149,13 +166,13 @@ const DataGrid: React.FC<DataGridProps> = () => {
                     </button>
                 </div> 
             </div>
-            <Table>
-                <TableHeader>
-                    <TableHead>Rule</TableHead>
-                    <TableHead>Impact</TableHead>
-                    <TableHead>Selector</TableHead>
-                    <TableHead>Snippet</TableHead>
-                    <TableHead>Help</TableHead>
+            <Table className='mt-10'>
+                <TableHeader className='bg-slate-50 rounded-t-md font-bold'>
+                    <TableHead className='text-slate-700 font-semibold'>Rule</TableHead>
+                    <TableHead className='text-slate-700 font-semibold'>Impact</TableHead>
+                    <TableHead className='text-slate-700 font-semibold'>Selector</TableHead>
+                    <TableHead className='text-slate-700 font-semibold'>Snippet</TableHead>
+                    <TableHead className='text-slate-700 font-semibold'>Help</TableHead>
                 </TableHeader>
                 <TableBody>
                 {filteredSortedViolations.map((item: any) => (
@@ -199,4 +216,16 @@ const DataGrid: React.FC<DataGridProps> = () => {
     );
 }
 
+const ImpactIcon: React.FC<{ impact: Impact }> = ({ impact }) => {
+    if (impact === 'critical') {
+        return <OctagonAlert className="text-black ml-auto" size={28} />;
+    } else if (impact === 'serious'){
+        return <AlertTriangle className="text-black ml-auto" size={28} />;
+    } else if (impact === 'moderate') {
+        return <AlertCircle className="text-black ml-auto" size={28} />;
+    } else {
+        return <InfoIcon className="text-black ml-auto" size={28} />;
+    }   
+}
 export default DataGrid;
+
