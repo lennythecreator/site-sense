@@ -26,6 +26,10 @@ const createWindow = () => {
     win.webContents.openDevTools()
   }
 
+  // Hide the menu bar
+  // win.setMenuBarVisibility(false);
+  // win.setMenu(null);
+
   win.webContents.openDevTools()
 
   // Handle IPC events

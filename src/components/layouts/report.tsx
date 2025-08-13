@@ -7,7 +7,9 @@ import { Button } from '../ui/button'
 import { ScrollArea } from '../ui/scroll-area'
 import ViolationCard from '../ui/violationCard'
 import { Link } from 'react-router-dom'
-
+import {motion} from 'motion/react'
+import { RootState } from '@/state/store'
+import { useSelector, useDispatch } from 'react-redux'
 type Status ={
   code: number
 }
@@ -25,6 +27,9 @@ const Report = ({ url, scanData, status,subDomains, currentPage = 1, onPageChang
   const [selectedGroup, setSelectedGroup] = useState('')
   const [data,setData] = useState(scanData)
   const [page, setPage] = useState(currentPage)
+  const report = useSelector((state: RootState) => state.savedReports.reports);
+  const dispatch = useDispatch();
+
   // Group subdomains by their base path (e.g., lenny.com/home)
   const groupSubdomains = (subs: string[]) => {
     const groups: { [group: string]: string[] } = {};
@@ -134,6 +139,17 @@ const Report = ({ url, scanData, status,subDomains, currentPage = 1, onPageChang
 
       const result = await response.json();
       console.log('Report saved successfully:', result);
+      // Dispatch action to update the report in the Redux store
+      dispatch({
+        type: 'ADD_REPORT',
+        payload: {
+          id: processID,
+          url: url,
+          data: result.data,
+          createdAt: new Date().toISOString(),
+        },
+      })
+      console.log(report, 'Report saved successfully')
       shareReport();
       console.log('Report share successfully');
     } catch (error) {
@@ -169,15 +185,15 @@ const Report = ({ url, scanData, status,subDomains, currentPage = 1, onPageChang
   
   // const uniqueSubDomains = Array.from(new Set(subDomains)); // No longer used
   return (
-    <div className='grid grid-cols-3'>
+    <div aria-label='report layout' className='grid grid-cols-3'>
       <div className='flex flex-col gap-2 col-span-2  h-full p-5'>
         <div className='flex items-center gap-2 px-3'>
           <p className='flex items-center gap-2 p-2 mr-auto bg-gray-100 rounded-lg'>
             Select Subdomain
           </p>
-          <Dialog>
+          <Dialog aria-label='share report dialog'>
             <DialogTrigger>
-              <Button onClick={shareReport} className='rounded-xl'><Share2Icon/>Share</Button>
+              <Button onClick={shareReport} className=' bg-orange-200 text text-orange-700 rounded-xl'><Share2Icon/>Share</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
@@ -211,7 +227,7 @@ const Report = ({ url, scanData, status,subDomains, currentPage = 1, onPageChang
         <div className='flex items-center gap-2 px-3 mb-4'>
           {/* Group dropdown */}
           <Select value={selectedGroup} onValueChange={setSelectedGroup}>
-          <SelectTrigger className='w-60 h-7'>
+          <SelectTrigger aria-label='select subdomain group' className='w-60 h-7'>
             
             <SelectValue placeholder='Select Group' />
           </SelectTrigger>
@@ -229,7 +245,7 @@ const Report = ({ url, scanData, status,subDomains, currentPage = 1, onPageChang
 
           {/* Subdomain dropdown (filtered by group) */}
           <Select value={selectedSubdomain} onValueChange={handleDomainChange}>
-          <SelectTrigger className='w-60 h-7'>
+          <SelectTrigger aria-label='select subdomain' className='w-60 h-7'>
             <SelectValue placeholder='Select Subdomain' />
           </SelectTrigger>
             <SelectContent className='p-1'>
@@ -281,6 +297,7 @@ const Report = ({ url, scanData, status,subDomains, currentPage = 1, onPageChang
 
         <div className='flex-1 w-full rounded-lg'>
           <webview
+          tabIndex={-1}
             src={selectedSubdomain}
             className='w-full h-[calc(100vh-200px)]'
             style={{
@@ -293,13 +310,13 @@ const Report = ({ url, scanData, status,subDomains, currentPage = 1, onPageChang
           />
         </div>
       </div>
-      <div className='col-span-1'>
-        <p className='text-lg font-bold'>Report Data</p>
+      <div className='col-span-1 px-2'>
+        <p className='text-lg font-bold pt-3'>Report Data</p>
         
         <Link 
         to={'/datagrid'} 
         target='_blank' 
-        className=' flex  w-fit bg-orange-200 rounded-md p-1 gap-2 text-orange-800'
+        className=' flex w-full bg-slate-200 rounded-md p-2 my-2 items-center justify-center gap-2 text-slate-800 hover:bg-slate-300 transition-colors ease-in-out duration-300'
         onClick={() => {
         localStorage.setItem(
           "datagridState",
@@ -314,23 +331,31 @@ const Report = ({ url, scanData, status,subDomains, currentPage = 1, onPageChang
 
             <div className="mt-4">
               <p className='text-sm font-bold'>Issues</p>
-              <ScrollArea className='h-[440px] pr-4'>
+              <ScrollArea className='h-full pr-4 lg:h-[calc(100vh-100px)]'>
                 {status?.code === 200 && violations.length > 0 ? (
-                  violations.map((violation: any, index: number) => (
-                    <ViolationCard 
-                      violation={violation}
-                      reportId={selectedSubdomain} 
-                      key={index} 
-                      reportState={{
-                        scanData,
-                        currentPage,
-                        subDomains,
-                        url,
-                        processID,
-                      }}
-                     />
-                  ))
-                  
+                  <motion.div variants={container} initial="initial" animate="animate">
+                    {violations.map((violation: any, index: number) => (
+                      <motion.div
+                        tabIndex={index}
+                        key={index}
+                        variants={child}
+                      >
+                        <ViolationCard
+                        
+                          violation={violation}
+                          siteLink={data?.info?.url || violation.url || violation.nodes?.[0]?.url || ''}
+                          reportId={selectedSubdomain}
+                          reportState={{
+                            scanData,
+                            currentPage,
+                            subDomains,
+                            url,
+                            processID,
+                          }}
+                        />
+                      </motion.div>
+                    ))}
+                  </motion.div>
                 ) : status?.code === 500 ? (
                   <div>
                     <p className='text-red-500'>An error occurred while fetching the report data.</p>
@@ -356,3 +381,16 @@ const Report = ({ url, scanData, status,subDomains, currentPage = 1, onPageChang
 }
 
 export default Report
+
+const container = {
+  animate: {
+    transition: {
+      staggerChildren: 0.15, // 0.15s between each card
+    },
+  },
+};
+
+const child = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+};

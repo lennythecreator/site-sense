@@ -7,10 +7,11 @@ import { Button } from '@/components/ui/button'
 import Header from '@/components/ui/header'
 import { Dialog } from '@radix-ui/react-dialog'
 import { DialogContent, DialogTitle } from '@/components/ui/dialog'
-
+import { useNavigate } from 'react-router-dom'
 //import { console } from 'inspector'
 
 const ReportView = () => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams()
   const urlParam = searchParams.get("url")
   const [status, setStatus] = useState({ code: 0 })// Initialize status with a default object
@@ -21,7 +22,10 @@ const ReportView = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [subDomains, setSubDomains] = useState<{ [key: string]: number }>({})
   const [processID, setProcessID] = useState("")
-  const [dialogOpen, setDialogOpen] = useState(true);
+  // Show dialog only for first-time users
+  const [dialogOpen, setDialogOpen] = useState(() => {
+    return !localStorage.getItem('hasSeenReportDialog');
+  });
   const hasStartedScan = useRef(false)
   //Have this be in a environment variable
   const baseURL = 'http://sitesense.ceamlsapps.org:5005'
@@ -63,7 +67,7 @@ const ReportView = () => {
   }, [])
 
   useEffect(()=>{
-    setDialogOpen(true)
+    // No longer force dialog open on mount
   },[])
 
   const startScan = async (formattedUrl: string) => {
@@ -99,6 +103,12 @@ const ReportView = () => {
         const sse = new SSE(`${baseURL}/api/v2/scan/${processID}?page=1&limit=${totalSubDomains}`)
         sse.onmessage = (event) => {
           const data = JSON.parse(event.data);
+          const connectionTimeOut = 300000;
+          const setConnectionTimeout = setTimeout(() => {
+            sse.close()
+          },
+          connectionTimeOut);
+
           //set code to 200
           //status.code = 200
           // Optional: Log to debug
@@ -112,9 +122,11 @@ const ReportView = () => {
                 //sse.close();
             }
             
+
             if (data.info.length === totalSubDomains){
               console.log('Scan complete, closing SSE');
               sse.close()
+              clearTimeout(setConnectionTimeout)
             }
             
         }
@@ -142,18 +154,24 @@ const ReportView = () => {
     <div className="flex flex-col h-full">
       <Header/>  
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-            <DialogTitle>Site Sense Guide</DialogTitle>
-            <h1 className='text-lg font-medium'>Page 1</h1>
+        <DialogContent className='w-[440px]'>
+            {/* <DialogTitle>Site Sense Guide</DialogTitle> */}
+            <h1 className='text-lg font-medium'>Understanding Your First Accessibility Scan</h1>
             <p>When you enter in a url you will see the web preview on the left side of the screen.</p>
-            <Button className='w-52 ml-auto'>Next</Button>
+            <Button
+              className='w-52 mx-auto'
+              onClick={() => {
+                localStorage.setItem('hasSeenReportDialog', 'true');
+                setDialogOpen(false);
+              }}
+            >Got it</Button>
         </DialogContent>
       </Dialog>
       <div className="flex justify-between items-center px-10 py-2 border-b border-gray-200">
         <p className="flex items-center gap-2 text-orange-400 bg-orange-200 p-2 text-sm rounded-lg">
           <GlobeIcon /> {site || "Scanning..."}
         </p>
-        <Button className="h-8" onClick={() => window.location.href = '/dashboard'}>Close</Button>
+        <Button className="h-8" onClick={() => navigate('/dashboard')}>Close</Button>
       </div>
 
       {scanning &&(
