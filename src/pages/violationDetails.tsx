@@ -1,20 +1,26 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ScanLayout from '@/components/layouts/scan';
 import { Accordion, AccordionContent, AccordionTrigger } from '@/components/ui/accordion';
 import { AccordionItem } from '@radix-ui/react-accordion';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Link as LinkIcon } from 'lucide-react';
+import { Copy, Globe, Link as LinkIcon } from 'lucide-react';
+import {motion} from 'motion/react'
+interface ViolationNode {
+  url?: string;
+  impact?: string;
+  html?: string;
+  target?: string[];
+  // Add other properties as needed
+}
 
 export const ViolationDetails = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { id } = useParams(); // fallback if needed
   const { violation:stateViolation, reportId } = location.state || {};
   const [violation, setViolation] = useState(stateViolation);
-  
   useEffect(() => {
     const scrollPosition = localStorage.getItem('scrollPosition');
     if (scrollPosition) {
@@ -30,6 +36,9 @@ export const ViolationDetails = () => {
         navigate('/dashboard'); // If nothing is found, redirect
       }
     }
+    // Log all possible sources for the site URL
+    console.log('Violation Details:', violation);
+    console.log('Site URL:', violation?.url || violation?.siteLink || violation?.nodes?.[0]?.url || 'No URL');
   }, []);
 
 
@@ -41,7 +50,7 @@ export const ViolationDetails = () => {
   }
 };
 
-    
+  
   if (!violation) {
     return (
       <ScanLayout>
@@ -68,21 +77,36 @@ export const ViolationDetails = () => {
           Back to Report
         </button>
 
-        <Card className="w-2/3 mx-auto p-4">
-          <CardHeader className="flex flex-col">
+        <Card className="w-2/3 mx-auto p-4 shadow-md ">
+          <h1 className='flex items-center gap-1 font-medium px-4 text-muted-foreground'>
+            <Globe/>
+            {(() => {
+              const url = violation.url || violation.siteLink || violation.nodes?.[0]?.url || '';
+              if (!url) return 'No URL available';
+              try {
+                const domain = new URL(url).hostname;
+                return domain;
+              } catch {
+                // fallback: try to extract domain manually
+                const match = url.match(/^(?:https?:\/\/)?([^\/]+)/);
+                return match ? match[1] : url;
+              }
+            })()}
+          </h1>
+          <CardHeader className="flex flex-row gap-2 items-center">
             <CardTitle>{violation.id}</CardTitle>
-            <Badge className="w-fit capitaliz ">{violation.impact}</Badge>
+            <Badge className="text-xs w-fit capitalize">{violation.impact}</Badge>
           </CardHeader>
 
           <CardContent className="space-y-4">
             <div>
-              <h1 className="text-xl font-medium">Description</h1>
-              <p className="text-muted-foreground">{violation.description}</p>
+              <h1 className="text-base font-medium">Description</h1>
+              <p className=" text-sm text-muted-foreground">{violation.description}</p>
             </div>
 
             <div>
-              <p className="text-lg font-medium">Suggestion</p>
-              <p className="text-muted-foreground">{violation.help}</p>
+              <p className="text-base font-medium">Suggestion</p>
+              <p className=" text-sm text-muted-foreground">{violation.help}</p>
             </div>
 
             {violation.helpUrl && (
@@ -90,15 +114,17 @@ export const ViolationDetails = () => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <a
+                      <motion.a
                         href={violation.helpUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-blue-600 underline"
+                        className="flex items-center gap-1 text-blue-600"
+                        whileHover={{ scale: 1.05, textDecoration: 'underline' }}
+                        whileTap={{ scale: 0.95 }}
                       >
                         <LinkIcon size={16} />
                         Quick-fix
-                      </a>
+                      </motion.a>
                     </TooltipTrigger>
                     <TooltipContent>{violation.help}</TooltipContent>
                   </Tooltip>
@@ -108,17 +134,29 @@ export const ViolationDetails = () => {
 
             <div>
               <p className="text-lg font-medium">Elements Affected</p>
-              <Accordion type="single" collapsible>
-                {violation.nodes?.map((node, index) => (
-                  <AccordionItem key={index} value={`node-${index}`}>
-                    <AccordionTrigger>Element {index + 1}</AccordionTrigger>
+              <Accordion type="single" collapsible >
+                {violation.nodes?.map((node: ViolationNode, index:number) => (
+                  <AccordionItem key={index} value={`node-${index}`} className='border-[1.5px] rounded-lg px-4 my-2'>
+                    <AccordionTrigger className=''>Element {index + 1}</AccordionTrigger>
                     <AccordionContent>
                       <div className="space-y-2">
                         <div className="font-medium flex gap-2">
                           Impact: <p className="text-muted-foreground">{node.impact}</p>
                         </div>
-                        <div className="font-medium flex gap-2">
-                          HTML: <p className="text-muted-foreground">{node.html}</p>
+                        <div className="font-medium flex gap-2 w-full">
+                          HTML: <p className="text-blue-700 bg-blue-100 rounded-md p-2 break-all">{node.html}</p>
+                          <motion.div
+                            className="cursor-pointer"
+                            initial={{color: 'gray'}}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95, color:'green' }}
+                            onClick={() => {
+                              navigator.clipboard.writeText(node.html || '');
+                              alert('HTML copied to clipboard!');
+                            }}>
+                            <Copy size={16} className="text-gray-500 hover:text-gray-700" />
+                            </motion.div>
+                          
                         </div>
                         <div className="font-medium flex gap-2">
                           Target:{' '}

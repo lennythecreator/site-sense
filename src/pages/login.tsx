@@ -1,27 +1,23 @@
 import { Button } from '@/components/ui/button'
-import { Card, CardFooter, CardHeader } from '@/components/ui/card'
+import { Card, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Globe } from 'lucide-react'
-import React from 'react'
 import { Link } from 'react-router-dom'
 
 const Login = () => {
   return (
-    <div>
+    <div className='min-h-screen flex items-center justify-center'>
     <header className =" flex">
-        <div className='flex items-center gap-2 p-3 h-20 border-b border-gray-200 w-full'>
-            <Globe/>
-            <p>Site Sense</p>
-        </div>
+       
 
 
         
     </header>
-    <div className='p-10 flex justify-center items-center'>
+    <div className=' my-auto p-10 flex justify-center items-center w-full'>
                 <Card className='p-10 w-1/2 flex flex-col gap-4' aria-description='Login to your account by clicking the login button below.'>
                 
                 <h1 className='flex items-center gap-2 text-2xl font-bold mx-auto'><Globe/> Site Sense</h1>
-                
+                <img src="SiteSense.png" alt="Site Sense" className='h-20 w-64 mx-auto' />
 
                 <Input type="email" placeholder="Email"  className='p-6'/>
                 <Input type="password" placeholder="Password"  className='p-6'/>
