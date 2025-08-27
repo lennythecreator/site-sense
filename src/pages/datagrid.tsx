@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertCircle, AlertTriangle, CircleAlert, InfoIcon, OctagonAlert } from 'lucide-react';
+import ScanLayout from '@/components/layouts/scan';
 
 type DataGridProps = {
   site: string;
@@ -17,7 +18,7 @@ const DataGrid: React.FC<DataGridProps> = () => {
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
     let { data, subDomains, url, processID } = location.state || {};
-
+    console.log("DataGrid location state:", location.state);
     if (!data) {
         // Try to load from localStorage if state is missing (e.g., opened in new tab)
         const saved = localStorage.getItem("datagridState");
@@ -90,9 +91,9 @@ const DataGrid: React.FC<DataGridProps> = () => {
     );
 
     return (
-        <main className='p-10'>
+        <ScanLayout>
             
-            <div className=''>
+            <div className='p-8'>
                 <h1 className='text-left font-semibold text-4xl'>Audit for <span className='text-indigo-600'>{url}</span></h1>
                 <p className='text-sm text-gray-500 py-2'>Here's a summary of the violations found from your scan.</p>
                 <div className="flex gap-4 my-4 justify-evenly">
@@ -193,7 +194,7 @@ const DataGrid: React.FC<DataGridProps> = () => {
                             : ''}
                         </TableCell>
                         <TableCell>
-                        <pre className="whitespace-pre-wrap text-xs">
+                        <pre className="whitespace-pre-wrap text-xs text-stone-800 font-medium bg-clip-content">
                             {item.node.html}
                         </pre>
                         </TableCell>
@@ -212,7 +213,7 @@ const DataGrid: React.FC<DataGridProps> = () => {
                 </TableBody>
                 <TableCaption>{url} Data Grid</TableCaption>
             </Table>
-        </main>
+        </ScanLayout>
     );
 }
 

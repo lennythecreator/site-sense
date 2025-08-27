@@ -3,10 +3,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {AnimatePresence, motion} from 'motion/react'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 type Report = {
   log_id?: {
@@ -30,6 +31,17 @@ const Dashboard = () => {
   const [dialogOpen, setDialogOpen] = useState(() => {
     return !localStorage.getItem('hasSeenStarterDialog');
   });
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState<React.ReactNode>(null);
+  const openModal = (modalContent: any) => {
+  setModalContent(modalContent);
+  setReportModalOpen(true);
+};
+
+const closeModal = () => {
+  setReportModalOpen(false);
+  setModalContent(null);
+};
   const [reportData, setReportData] = useState<Report[]>([])
   const [error, setError] = useState<string | null>(null);
 
@@ -77,7 +89,7 @@ const Dashboard = () => {
     
       <div className='flex flex-col h-full'>
       {/* <Header /> */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen} aria-scribedby='dialog-title'>
+      <Dialog open={reportModalOpen} onOpenChange={setReportModalOpen}  aria-scribedby='dialog-title'>
         <DialogContent>
           <h1 id='dialog-title' className='font-medium'>Hi! Thank you for choosing Site Sense.</h1>
           <p id='dialog-body'>On the next screen, please enter the website URL <br/>(eg. https://google.com), then click the ‘Scan’ button to perform your first accessibility scan.</p>
@@ -88,6 +100,42 @@ const Dashboard = () => {
               setDialogOpen(false);
             }}
           >Got it</Button>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={reportModalOpen} onOpenChange={setReportModalOpen}>
+        <DialogContent>
+          <DialogTitle>Report Details</DialogTitle>
+          {modalContent && (
+            <div className="space-y-3">
+              
+              <div className='text-3xl text-indigo-600 font-bold'>
+                <p>{modalContent.url || 'N/A'}</p>
+              </div>
+              <div>
+                <strong>Created At:</strong> {
+                  modalContent.createdAt 
+                    ? new Date(modalContent.createdAt).toLocaleString()
+                    : 'N/A'
+                }
+              </div>
+              <div className=''>
+                <strong>Violations:</strong>
+                <ScrollArea className='h-96'>
+                  
+                  {modalContent.violations.map((violation,index)=>(
+                    <div tabIndex={0} key={index} className='flex flex-col gap-2 border my-4 p-4 min-h-32 rounded-2xl hover:shadow-md transition duration-300 ease-in-out'>
+                      <p className='font-semibold'>{violation.id}</p>
+                      <p className='text-sm textgray-800'>{violation.description}</p>
+                      <Badge className='w-fit bg-orange-200 text-orange-800'>{violation.impact}</Badge>
+                    </div>
+                  ))}
+                </ScrollArea>
+              </div>
+              <Button onClick={closeModal} className="mt-4">
+                Close
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
       <AnimatePresence>
@@ -125,6 +173,7 @@ const Dashboard = () => {
               
               <div className='px-8 mx-auto py-6 '>
                 <h1 className='font-semibold text-lg'>Recent saved reports</h1>
+                
                 <div className='flex flex-wrap gap-8 w-full py-5'>
                   {error ? (
                     <p className="text-red-500 text-xl">Error loading reports!</p>
@@ -160,14 +209,14 @@ const Dashboard = () => {
                             <Button
                               className='bg-slate-300 text-slate-900 rounded-lg'
                               onClick={() => {
-                                localStorage.setItem('datagridState', JSON.stringify({
+                                const reportData = {
                                   reportId: report.log_id?.status,
                                   url: report.log_id?.url,
                                   createdAt: report.log_id?.createdAt,
                                   violations: report.log_id?.info?.info?.violations,
-                                  // add other fields as needed
-                                }));
-                                navigate('/datagrid')
+                                };
+                                console.log('pressed',reportData);
+                                openModal(reportData); // ✅ Pass the data directly
                               }}
                             >
                               View Report
@@ -193,4 +242,24 @@ const Dashboard = () => {
   )
 }
 
+interface ReportModalProps {
+  data: any;
+}
+
+const ReportModal: React.FC<ReportModalProps> = ({ data }) => {
+  return (
+    <Dialog>
+      <DialogContent>
+        <h2>Report Data</h2>
+        <ul>
+          <li>Report ID: {data.reportId}</li>
+          <li>URL: {data.url}</li>
+          <li>Created At: {data.createdAt}</li>
+          <li>Violations: {data.violations}</li>
+          {/* add other fields as needed */}
+        </ul>
+      </DialogContent>
+    </Dialog>
+  );
+};
 export default Dashboard

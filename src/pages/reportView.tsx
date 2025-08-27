@@ -168,10 +168,10 @@ const ReportView = () => {
         </DialogContent>
       </Dialog>
       <div className="flex justify-between items-center px-10 py-2 border-b border-gray-200">
-        <p className="flex items-center gap-2 text-orange-400 bg-orange-200 p-2 text-sm rounded-lg">
+        <p className="flex items-center gap-2 bg-gradient-to-r text-stone-600 from-slate-200 to-slate-100 p-2 text-sm rounded-lg">
           <GlobeIcon /> {site || "Scanning..."}
         </p>
-        <Button className="h-8" onClick={() => navigate('/dashboard')}>Close</Button>
+        <Button className="h-8 bg-stone-400 text-stone-100" onClick={() => navigate('/dashboard')}>Close</Button>
       </div>
 
       {scanning &&(

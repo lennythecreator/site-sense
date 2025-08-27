@@ -57,16 +57,16 @@ const ViolationCard: React.FC<ViolationCardProps> = ({ violation, reportId, repo
   let badgeClass = '';
   switch (violation.impact) {
     case 'critical':
-      badgeClass = 'bg-red-300 text-red-600';
+      badgeClass = 'bg-red-200 text-red-800';
       break;
     case 'serious':
-      badgeClass = 'bg-orange-300 text-orange-600';
+      badgeClass = 'bg-orange-200 text-orange-800';
       break;
     case 'moderate':
-      badgeClass = 'bg-yellow-300 text-yellow-700';
+      badgeClass = 'bg-yellow-200 text-yellow-800';
       break;
     case 'minor':
-      badgeClass = 'bg-green-300 text-green-600';
+      badgeClass = 'bg-green-200 text-green-800';
       break;
     default:
       badgeClass = 'bg-gray-100 text-gray-600';

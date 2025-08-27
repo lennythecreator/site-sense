@@ -1,4 +1,4 @@
-import { Grid2X2Icon, SaveAllIcon, Share2Icon } from 'lucide-react'
+import { Brain, Grid2X2Icon, SaveAllIcon, Share2Icon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog'
 import { Select, SelectContent, SelectTrigger, SelectValue,SelectItem,SelectGroup, SelectLabel } from '../ui/select'
@@ -316,14 +316,19 @@ const Report = ({ url, scanData, status,subDomains, currentPage = 1, onPageChang
         <Link 
         to={'/datagrid'} 
         target='_blank' 
-        className=' flex w-full bg-slate-200 rounded-md p-2 my-2 items-center justify-center gap-2 text-slate-800 hover:bg-slate-300 transition-colors ease-in-out duration-300'
+        className=' flex w-full bg-stone-300 rounded-xl p-3 my-2 items-center justify-center gap-2 text-stone-600 hover:bg-slate-300 transition-colors ease-in-out duration-300'
         onClick={() => {
         localStorage.setItem(
           "datagridState",
           JSON.stringify({ data, subDomains, url, processID })
         );}}
         ><Grid2X2Icon/> View Data Grid</Link>
-
+        <motion.div
+        whileHover={{ scale: 1.03, transition: { duration: 0.3 } }}
+        whileTap={{ scale: 0.95, transition: { duration: 0.3 } }}>
+          <Link to={'/opertorView'} className='flex justify-center items-center gap-2 bg-gradient-to-r from-orange-300 to-orange-600 rounded-xl p-3 text-white'><Brain/>Operator View</Link>
+        </motion.div>
+        
         {data && violations ? (
           <div className='flex flex-col gap-1 p-2'>
             {/* <p className='text-sm font-bold'>Progress</p>
@@ -339,6 +344,7 @@ const Report = ({ url, scanData, status,subDomains, currentPage = 1, onPageChang
                         tabIndex={index}
                         key={index}
                         variants={child}
+                        whileTap={{ scale: 0.95, transition: { duration: 0.3 } }}
                       >
                         <ViolationCard
                         
